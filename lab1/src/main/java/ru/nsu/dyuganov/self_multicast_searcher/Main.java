@@ -1,23 +1,20 @@
 package ru.nsu.dyuganov.self_multicast_searcher;
 
-import java.io.IOException;
-
 public class Main {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         String multicastServerIp = args[0];
         if (!idCorrectInput(args)) {
             System.err.println("Wrong args number");
             return;
         }
-        final MulticastSelfSearcher multicastSelfSearcher = new MulticastSelfSearcher(multicastServerIp);
-        while(true){
-            try {
-                multicastSelfSearcher.findProgCopies();
-            } catch (IOException e) {
-                System.out.println("time is out");
-            }
-        }
 
+
+        try {
+            final MulticastSelfSearcher multicastSelfSearcher = new MulticastSelfSearcher(multicastServerIp);
+            multicastSelfSearcher.findProgCopies();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private static boolean idCorrectInput(String[] args) {
