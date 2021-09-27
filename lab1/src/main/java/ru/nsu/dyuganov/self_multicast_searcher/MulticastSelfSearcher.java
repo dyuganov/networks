@@ -30,9 +30,22 @@ public class MulticastSelfSearcher {
         receiveMessagePacket = new DatagramPacket(receiveBytes, receiveBytes.length, groupInetAddress, Constants.port);
     }
 
-    void findProgCopies() throws IOException {
+    void findProgCopies() {
+        Thread senderThread = new Thread(() -> {
+            try {
+                DatagramSocket sendSocket = new DatagramSocket();
+                while(true){
+                    sendSocket.send(sendMessagePacket);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+        senderThread.setDaemon(true);
+        senderThread.start();
+
         while (true) {
-            multicastSocket.send(sendMessagePacket);
+            //multicastSocket.send(sendMessagePacket);
             receiveMessage();
             updateCopiesList();
             printCopies();
@@ -42,6 +55,7 @@ public class MulticastSelfSearcher {
     private void receiveMessage() {
         try {
             multicastSocket.receive(receiveMessagePacket);
+            System.out.println("Got msg from " + UUID.fromString(new String(receiveMessagePacket.getData())));
             TimeUnit.SECONDS.sleep(Constants.sleepTimeSeconds);
         } catch (IOException | InterruptedException e) {
             System.out.println("time is out");
