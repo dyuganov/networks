@@ -2,7 +2,7 @@ package ru.nsu.dyuganov.self_multicast_searcher;
 
 public class Main {
     public static void main(String[] args) {
-        if (Constants.expectedArgsNum != args.length) {
+        if (Constants.EXPECTED_ARGS_NUM != args.length) {
             System.err.println("Wrong args number");
             return;
         }

@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.UUID;
 
 public class MulticastSelfSearcher {
-    private final MulticastSocket multicastSocket = new MulticastSocket(Constants.port);
+    private final MulticastSocket multicastSocket = new MulticastSocket(Constants.PORT);
     private final InetAddress groupInetAddress;
 
     private final UUID thisUUID = UUID.randomUUID();
@@ -25,9 +25,9 @@ public class MulticastSelfSearcher {
             throw new IllegalArgumentException("ip " + multicastGroupIp + " is not multicast address");
         }
         multicastSocket.joinGroup(groupInetAddress);
-        multicastSocket.setSoTimeout(Constants.disconnectTimeoutMills);
-        sendMessagePacket = new DatagramPacket(sendBytes, sendBytes.length, groupInetAddress, Constants.port);
-        receiveMessagePacket = new DatagramPacket(receiveBytes, receiveBytes.length, groupInetAddress, Constants.port);
+        multicastSocket.setSoTimeout(Constants.DISCONNECT_TIMEOUT_MILLS);
+        sendMessagePacket = new DatagramPacket(sendBytes, sendBytes.length, groupInetAddress, Constants.PORT);
+        receiveMessagePacket = new DatagramPacket(receiveBytes, receiveBytes.length, groupInetAddress, Constants.PORT);
     }
 
     void findProgCopies() {
@@ -36,7 +36,7 @@ public class MulticastSelfSearcher {
                 DatagramSocket sendSocket = new DatagramSocket();
                 while(true){
                     sendSocket.send(sendMessagePacket);
-                    Thread.sleep(Constants.sendMessagesDelayMills);
+                    Thread.sleep(Constants.SEND_MESSAGES_DELAY_MILLS);
                 }
             } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
@@ -89,7 +89,7 @@ public class MulticastSelfSearcher {
         for(var iter = uuidToLastMessageTimeoutMills.entrySet().iterator(); iter.hasNext();){
             var pair = iter.next();
             long lastMsgTimeGapMills = currentTimeMills - pair.getValue();
-            if(lastMsgTimeGapMills > Constants.clearUUIDListTimeoutMills){
+            if(lastMsgTimeGapMills > Constants.CLEAR_UUID_LIST_TIMEOUT_MILLS){
                 System.out.println("Removed: " + pair.getValue() + " - " + pair.getKey());
                 uuidToIpCopies.remove(pair.getKey());
                 iter.remove();
