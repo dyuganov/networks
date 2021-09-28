@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.*;
 import java.util.HashMap;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 public class MulticastSelfSearcher {
     private final MulticastSocket multicastSocket = new MulticastSocket(Constants.port);
@@ -20,6 +19,7 @@ public class MulticastSelfSearcher {
     private final HashMap<UUID, Long> uuidToLastMessageTimeoutMills = new HashMap<>();
 
     public MulticastSelfSearcher(String multicastGroupIp) throws IOException {
+        assert multicastGroupIp != null;
         groupInetAddress = InetAddress.getByName(multicastGroupIp);
         if (!groupInetAddress.isMulticastAddress()) {
             throw new IllegalArgumentException("ip " + multicastGroupIp + " is not multicast address");
@@ -36,8 +36,9 @@ public class MulticastSelfSearcher {
                 DatagramSocket sendSocket = new DatagramSocket();
                 while(true){
                     sendSocket.send(sendMessagePacket);
+                    Thread.sleep(Constants.sendMessagesDelayMills);
                 }
-            } catch (IOException e) {
+            } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
             }
         });
@@ -45,7 +46,6 @@ public class MulticastSelfSearcher {
         senderThread.start();
 
         while (true) {
-            //multicastSocket.send(sendMessagePacket);
             receiveMessage();
             updateCopiesList();
             printCopies();
@@ -55,9 +55,7 @@ public class MulticastSelfSearcher {
     private void receiveMessage() {
         try {
             multicastSocket.receive(receiveMessagePacket);
-            System.out.println("Got msg from " + UUID.fromString(new String(receiveMessagePacket.getData())));
-            TimeUnit.SECONDS.sleep(Constants.sleepTimeSeconds);
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             System.out.println("time is out");
         }
     }
