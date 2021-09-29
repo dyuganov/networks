@@ -1,0 +1,7 @@
+**/build/
+**/bin/
+**/.idea/
+**/Server/.gradle/
+**/Client/.gradle/
+**/Server/settings.gradle
+**/Client/settings.gradle
