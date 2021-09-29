@@ -48,7 +48,6 @@ public class MulticastSelfSearcher {
         while (true) {
             receiveMessage();
             updateCopiesList();
-            printCopies();
         }
     }
 
@@ -79,6 +78,8 @@ public class MulticastSelfSearcher {
         if(!uuidToIpCopies.containsKey(otherUUID)){
             uuidToIpCopies.put(otherUUID, messageSenderIp);
             uuidToLastMessageTimeoutMills.put(otherUUID, currentTime);
+
+            printCopies();
             return;
         }
         uuidToLastMessageTimeoutMills.put(otherUUID, currentTime);
@@ -93,6 +94,7 @@ public class MulticastSelfSearcher {
                 System.out.println("Removed: " + pair.getValue() + " - " + pair.getKey());
                 uuidToIpCopies.remove(pair.getKey());
                 iter.remove();
+                printCopies();
             }
         }
 
