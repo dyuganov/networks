@@ -1,5 +1,7 @@
 package ru.nsu.dyuganov.file_sender_server;
 
+import lombok.SneakyThrows;
+
 import java.io.IOException;
 import java.util.Properties;
 
@@ -10,7 +12,6 @@ public class Main {
 
     public static void main(String[] args) throws InterruptedException, IOException {
         //PropertyConfigurator.configure("Server/src/main/resources/log4j.properties");
-
         properties.load(Main.class.getClassLoader().getResourceAsStream("config.properties"));
         final int SERVER_PORT_ARGS_IDX = Integer.parseInt(properties.getProperty("SERVER_PORT_ARGS_IDX"));
         final int ARGS_NUM = Integer.parseInt(properties.getProperty("ARGS_NUM"));
