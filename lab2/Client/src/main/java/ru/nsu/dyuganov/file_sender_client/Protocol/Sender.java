@@ -2,10 +2,8 @@ package ru.nsu.dyuganov.file_sender_client.Protocol;
 
 import lombok.NonNull;
 
-import java.io.File;
-
-public class Sender implements SendProtocol{
-    Sender(){
+public class Sender implements SendProtocol {
+    Sender() {
 
     }
 
@@ -25,7 +23,7 @@ public class Sender implements SendProtocol{
     }
 
     @Override
-    public void sendFile(File file) {
+    public void sendFile(@NonNull String fileName) {
 
     }
 }
