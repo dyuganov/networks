@@ -5,3 +5,7 @@
 **/Client/.gradle/
 **/Server/settings.gradle
 **/Client/settings.gradle
+**/Client/build
+**/Server/build
+**/logs
+
