@@ -6,11 +6,11 @@ import java.util.Properties;
 public class Main {
     private final static org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Main.class);
     private static final Properties properties = new Properties();
+    public static final String PROPERTIES_FILE_NAME = "config.properties";
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        final String propertiesFileName = "config.properties";
-        properties.load(Main.class.getClassLoader().getResourceAsStream(propertiesFileName));
-        logger.debug("Properties file \"" + propertiesFileName + "\" loaded");
+        properties.load(Main.class.getClassLoader().getResourceAsStream(Main.PROPERTIES_FILE_NAME));
+        logger.debug("Properties file \"" + Main.PROPERTIES_FILE_NAME + "\" loaded");
         final int FILE_PATH_ARGS_IDX = Integer.parseInt(properties.getProperty("FILE_PATH_ARGS_IDX"));
         final int SERVER_ADR_ARGS_IDX = Integer.parseInt(properties.getProperty("SERVER_ADR_ARGS_IDX"));
         final int SERVER_PORT_ARGS_IDX = Integer.parseInt(properties.getProperty("SERVER_PORT_ARGS_IDX"));

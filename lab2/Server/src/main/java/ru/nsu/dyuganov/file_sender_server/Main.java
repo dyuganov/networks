@@ -7,11 +7,11 @@ public class Main {
     private final static org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Main.class);
     private static final Properties properties = new Properties();
 
+    public static final String PROPERTIES_FILE_NAME = "config.properties";
+
     public static void main(String[] args) throws InterruptedException, IOException {
-        //PropertyConfigurator.configure("Server/src/main/resources/log4j.properties"); // not needed?
-        final String propertiesFileName = "config.properties";
-        properties.load(Main.class.getClassLoader().getResourceAsStream(propertiesFileName));
-        logger.debug("Properties file \"" + propertiesFileName + "\" loaded");
+        properties.load(Main.class.getClassLoader().getResourceAsStream(PROPERTIES_FILE_NAME));
+        logger.debug("Properties file \"" + PROPERTIES_FILE_NAME + "\" loaded");
         final int ARGS_NUM = Integer.parseInt(properties.getProperty("ARGS_NUM"));
         final int SERVER_PORT_ARGS_IDX = Integer.parseInt(properties.getProperty("SERVER_PORT_ARGS_IDX"));
         logger.debug("Constants parsed from properties");

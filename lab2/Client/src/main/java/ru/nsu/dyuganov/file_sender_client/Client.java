@@ -4,7 +4,6 @@ import java.util.Properties;
 
 public class Client implements Runnable{
     private final static org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Main.class);
-    private static final Properties properties = new Properties();
 
     final String filePath;
     final String fileName;

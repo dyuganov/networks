@@ -18,9 +18,8 @@ public class Server implements Runnable {
 
     Server(int port) throws IOException {
         final Properties properties = new Properties();
-        final String propertiesFileName = "config.properties";
-        properties.load(Main.class.getClassLoader().getResourceAsStream(propertiesFileName));
-        logger.debug("Properties file \"" + propertiesFileName + "\" loaded");
+        properties.load(Main.class.getClassLoader().getResourceAsStream(Main.PROPERTIES_FILE_NAME));
+        logger.debug("Properties file \"" + Main.PROPERTIES_FILE_NAME + "\" loaded");
 
         final int MIN_PORT = Integer.parseInt(properties.getProperty("MIN_PORT"));
         final int MAX_PORT = Integer.parseInt(properties.getProperty("MAX_PORT"));
