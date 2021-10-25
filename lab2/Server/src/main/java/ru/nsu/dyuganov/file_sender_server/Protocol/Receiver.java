@@ -1,7 +1,7 @@
 package ru.nsu.dyuganov.file_sender_server.Protocol;
 
 public class Receiver implements ReceiveProtocol {
-    Receiver() {
+    public Receiver() {
         // ...
     }
 

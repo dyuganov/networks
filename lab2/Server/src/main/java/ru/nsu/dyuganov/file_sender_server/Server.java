@@ -9,7 +9,7 @@ import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class Server implements Runnable {
+public class Server {
     private final static org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Server.class);
 
     private final ExecutorService threadPool;
@@ -35,7 +35,6 @@ public class Server implements Runnable {
     }
 
     @SneakyThrows
-    @Override
     public void run() {
         while (!serverSocket.isClosed()) {
             Socket newConnection = serverSocket.accept();

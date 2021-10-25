@@ -1,19 +1,22 @@
 package ru.nsu.dyuganov.file_sender_client;
 
-import java.io.IOException;
-import java.util.Properties;
+import lombok.SneakyThrows;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.builder.fluent.Configurations;
+
+import java.io.File;
 
 public class Main {
     private final static org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Main.class);
-    private static final Properties properties = new Properties();
     public static final String PROPERTIES_FILE_NAME = "config.properties";
 
-    public static void main(String[] args) throws IOException, InterruptedException {
-        properties.load(Main.class.getClassLoader().getResourceAsStream(Main.PROPERTIES_FILE_NAME));
-        logger.debug("Properties file \"" + Main.PROPERTIES_FILE_NAME + "\" loaded");
-        final int FILE_PATH_ARGS_IDX = Integer.parseInt(properties.getProperty("FILE_PATH_ARGS_IDX"));
-        final int SERVER_ADR_ARGS_IDX = Integer.parseInt(properties.getProperty("SERVER_ADR_ARGS_IDX"));
-        final int SERVER_PORT_ARGS_IDX = Integer.parseInt(properties.getProperty("SERVER_PORT_ARGS_IDX"));
+    @SneakyThrows
+    public static void main(String[] args) {
+        final Configuration config = new Configurations().properties(new File(PROPERTIES_FILE_NAME));
+        logger.debug("Properties file \"" + PROPERTIES_FILE_NAME + "\" loaded");
+        final int FILE_PATH_ARGS_IDX = config.getInt("FILE_PATH_ARGS_IDX");
+        final int SERVER_ADR_ARGS_IDX = config.getInt("SERVER_ADR_ARGS_IDX");
+        final int SERVER_PORT_ARGS_IDX = config.getInt("SERVER_PORT_ARGS_IDX");
         logger.debug("Constants parsed from properties");
         if (3 != args.length) {
             logger.error("Wrong args num");
@@ -28,11 +31,6 @@ public class Main {
         final int serverPort = Integer.parseInt(args[SERVER_PORT_ARGS_IDX]);
 
         Client client = new Client(filePath, serverAddress, serverPort);
-        Thread clientThread = new Thread(client);
-        logger.debug("Client thread created");
-        clientThread.start();
-        logger.debug("Client thread started");
-        clientThread.join();
-        logger.debug("Client thread joined main");
+        client.run();
     }
 }
