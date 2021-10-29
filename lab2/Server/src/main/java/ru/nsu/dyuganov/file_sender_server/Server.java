@@ -4,9 +4,9 @@ import lombok.NonNull;
 import lombok.SneakyThrows;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
+import ru.nsu.dyuganov.file_sender_server.Protocol.TCPReceiver;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
@@ -24,8 +24,8 @@ public class Server {
         @NonNull final Configuration config = new Configurations().properties(new File(Main.PROPERTIES_FILE_NAME));
         logger.debug("Properties file \"" + Main.PROPERTIES_FILE_NAME + "\" loaded");
 
-        final int MIN_PORT = config.getInt("MIN_PORT");
-        final int MAX_PORT = config.getInt("MAX_PORT");
+        final int MIN_PORT = config.getInt("MIN_PORT", 1024);
+        final int MAX_PORT = config.getInt("MAX_PORT", 49151);
         if (MIN_PORT > port || MAX_PORT < port) {
             throw new IllegalArgumentException("Port is not correct");
         }
@@ -34,14 +34,14 @@ public class Server {
         final int THREAD_POOL_SIZE = config.getInt("THREAD_POOL_SIZE", 1);
         threadPool = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
 
-        UPLOADS_DIRECTORY = config.getString("UPLOADS_DIRECTORY", "/uploads");
+        UPLOADS_DIRECTORY = config.getString("UPLOADS_DIRECTORY", "uploads/");
     }
 
     @SneakyThrows
     public void run() {
         while (!serverSocket.isClosed()) {
             Socket newConnection = serverSocket.accept();
-            threadPool.submit(new ConnectionHandler(newConnection, UPLOADS_DIRECTORY));
+            threadPool.submit(new ConnectionHandler(UPLOADS_DIRECTORY, new TCPReceiver(newConnection)));
         }
         threadPool.shutdown();
     }

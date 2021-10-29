@@ -1,8 +1,10 @@
 package ru.nsu.dyuganov.file_sender_server.Protocol;
 
+import java.nio.file.Path;
+
 public interface ReceiveProtocol {
-    int getNameSize(int dataSize);
-    String getFilename(int nameSize);
-    int getFileSize(int dataSize);
-    void getFile(int fileSize, String uploadsPath);
+    int getFileNameSize();
+    String getFileName(int nameSize);
+    long getFileSize();
+    void getFile(long fileSize, Path uploadsPath);
 }
