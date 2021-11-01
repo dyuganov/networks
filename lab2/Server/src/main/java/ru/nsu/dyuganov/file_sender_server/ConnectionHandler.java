@@ -19,15 +19,21 @@ public class ConnectionHandler implements Runnable {
         this.receiveProtocol = protocol;
     }
 
+
+    /**
+     * Order of getting info: file name size, file name, file size, file
+     * */
     @SneakyThrows
     @Override
     public void run() {
-        //@NonNull final Configuration config = new Configurations().properties(new File(Main.PROPERTIES_FILE_NAME));
         final int fileNameSize = receiveProtocol.getFileNameSize();
         @NonNull String fileName = receiveProtocol.getFileName(fileNameSize);
         final long fileSize = receiveProtocol.getFileSize();
-        var filePath = createFile(fileName);
-        receiveProtocol.getFile(fileSize, filePath);
+        final var filePath = createFile(fileName);
+        final long realSize = receiveProtocol.getFile(fileSize, filePath);
+        if(fileSize != realSize){
+            throw new RuntimeException("Real and expected file size do not match");
+        }
     }
 
     @SneakyThrows

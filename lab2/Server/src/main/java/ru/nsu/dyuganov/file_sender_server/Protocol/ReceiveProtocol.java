@@ -6,5 +6,5 @@ public interface ReceiveProtocol {
     int getFileNameSize();
     String getFileName(int nameSize);
     long getFileSize();
-    void getFile(long fileSize, Path uploadsPath);
+    long getFile(long fileSize, Path uploadsPath);
 }

@@ -19,6 +19,9 @@ public class Client implements Runnable{
         this.serverPort = serverPort;
     }
 
+    /**
+     * Order of sending info: file name size, file name, file size, file
+     * */
     public void run() {
 
     }

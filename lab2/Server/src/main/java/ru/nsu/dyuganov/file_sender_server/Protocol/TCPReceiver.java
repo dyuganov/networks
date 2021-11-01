@@ -6,6 +6,7 @@ import lombok.SneakyThrows;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.Socket;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class TCPReceiver implements ReceiveProtocol {
@@ -13,6 +14,15 @@ public class TCPReceiver implements ReceiveProtocol {
     private final Socket socket;
     private final DataInputStream inputStream;
     private final DataOutputStream outputStream;
+
+    private long totalBytesRead = 0;
+    private long bytesReadForInterval = 0;
+    private long totalSpeed = 0;
+    private long currentSpeed = 0;
+    private long totalSessionTime = 0;
+
+
+    private final static int FILE_DATA_BUF_SIZE = 2048;
 
     @SneakyThrows
     public TCPReceiver(@NonNull Socket socket) {
@@ -63,8 +73,25 @@ public class TCPReceiver implements ReceiveProtocol {
     /**
      * @param fileSize in bytes
      */
+    @SneakyThrows
     @Override
-    public void getFile(final long fileSize, @NonNull final Path filePath) {
-        //var fileWriter = Files.newOutputStream(uploadsPath);
+    public long getFile(final long fileSize, @NonNull final Path filePath) {
+        var fileWriter = Files.newOutputStream(filePath);
+        if((long)Integer.MAX_VALUE < fileSize){
+            throw new RuntimeException("Can't get file. It is too big");
+        }
+        byte[] buf = new byte[FILE_DATA_BUF_SIZE];
+        long totalBytes = 0;
+        while(fileSize > totalBytes){
+            int bytesFromStream = inputStream.read(buf, 0, FILE_DATA_BUF_SIZE);
+            if (bytesFromStream < 0) {
+                break;
+            }
+            fileWriter.write(buf, 0, bytesFromStream);
+            totalBytes += bytesFromStream;
+            totalBytesRead += bytesFromStream;
+            bytesReadForInterval += bytesFromStream;
+        }
+        return totalBytes;
     }
 }
