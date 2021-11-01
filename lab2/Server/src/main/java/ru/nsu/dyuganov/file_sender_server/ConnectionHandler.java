@@ -30,9 +30,10 @@ public class ConnectionHandler implements Runnable {
         @NonNull String fileName = receiveProtocol.getFileName(fileNameSize);
         final long fileSize = receiveProtocol.getFileSize();
         final var filePath = createFile(fileName);
-        final long realSize = receiveProtocol.getFile(fileSize, filePath);
-        if(fileSize != realSize){
-            throw new RuntimeException("Real and expected file size do not match");
+        receiveProtocol.getFile(fileSize, filePath);
+        receiveProtocol.closeConnections();
+        if(fileSize != Files.size(filePath)){
+            throw new RuntimeException("Real != expected file size");
         }
     }
 

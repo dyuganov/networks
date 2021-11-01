@@ -8,6 +8,11 @@ import java.io.DataOutputStream;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class TCPReceiver implements ReceiveProtocol {
     private final static org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(TCPReceiver.class);
@@ -15,14 +20,11 @@ public class TCPReceiver implements ReceiveProtocol {
     private final DataInputStream inputStream;
     private final DataOutputStream outputStream;
 
-    private long totalBytesRead = 0;
-    private long bytesReadForInterval = 0;
-    private long totalSpeed = 0;
-    private long currentSpeed = 0;
-    private long totalSessionTime = 0;
+
 
 
     private final static int FILE_DATA_BUF_SIZE = 2048;
+    private final static int TIME_INTERVAL_SEC = 3;
 
     @SneakyThrows
     public TCPReceiver(@NonNull Socket socket) {
@@ -41,8 +43,14 @@ public class TCPReceiver implements ReceiveProtocol {
     @SneakyThrows
     @Override
     public int getFileNameSize() {
-        logger.debug(socket.toString() + " Getting file name size");
-        return inputStream.readInt();
+        Instant start = Instant.now();
+        final int result = inputStream.readInt();
+        Instant end = Instant.now();
+        Duration timeElapsed = Duration.between(start, end);
+        logger.debug(socket.toString() + " Getting file name size done at " + timeElapsed.toMillis() + " millis");
+        System.out.println("Getting file name size time taken: "+ timeElapsed.toMillis() +" milliseconds" +
+                " at speed " + Integer.SIZE/timeElapsed.getSeconds() + "bytes/second");
+        return result;
     }
 
     /**
@@ -75,7 +83,16 @@ public class TCPReceiver implements ReceiveProtocol {
      */
     @SneakyThrows
     @Override
-    public long getFile(final long fileSize, @NonNull final Path filePath) {
+    public void getFile(final long fileSize, @NonNull final Path filePath) {
+        final ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(1);
+        scheduledThreadPool.scheduleAtFixedRate(this::countSpeed, 2, TIME_INTERVAL_SEC, TimeUnit.SECONDS);
+        long totalSpeed = 0;
+        long currentSpeed = 0;
+        long totalSessionTime = 0;
+
+        long totalBytesRead = 0;
+        long bytesReadForInterval = 0;
+
         var fileWriter = Files.newOutputStream(filePath);
         if((long)Integer.MAX_VALUE < fileSize){
             throw new RuntimeException("Can't get file. It is too big");
@@ -92,6 +109,19 @@ public class TCPReceiver implements ReceiveProtocol {
             totalBytesRead += bytesFromStream;
             bytesReadForInterval += bytesFromStream;
         }
-        return totalBytes;
+
+
+        scheduledThreadPool.shutdown();
+    }
+
+    @SneakyThrows
+    @Override
+    public void closeConnections(){
+        inputStream.close();
+        outputStream.close();
+    }
+
+    private void countSpeed(){
+
     }
 }
