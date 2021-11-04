@@ -19,7 +19,6 @@ public class ConnectionHandler implements Runnable {
         this.receiveProtocol = protocol;
     }
 
-
     /**
      * Order of getting info: file name size, file name, file size, file
      * */
@@ -27,12 +26,19 @@ public class ConnectionHandler implements Runnable {
     @Override
     public void run() {
         final int fileNameSize = receiveProtocol.getFileNameSize();
-        @NonNull String fileName = receiveProtocol.getFileName(fileNameSize);
+        @NonNull String fileName = receiveProtocol.getFileName();
+        if (fileNameSize != fileName.length()) {
+            logger.error("Got wrong file name. Expected len = " + fileNameSize + ", got len = " + fileName.length() + " name: " + fileName);
+            receiveProtocol.closeConnections();
+            throw new RuntimeException("Wrong filename");
+        }
+
         final long fileSize = receiveProtocol.getFileSize();
         final var filePath = createFile(fileName);
         receiveProtocol.getFile(fileSize, filePath);
         receiveProtocol.closeConnections();
         if(fileSize != Files.size(filePath)){
+            logger.error("Real != expected file size");
             throw new RuntimeException("Real != expected file size");
         }
     }
@@ -43,6 +49,7 @@ public class ConnectionHandler implements Runnable {
         final String separator = System.getProperty("file.separator");
         final Path filePath = Paths.get(directoryPath + separator + fileName);
         Files.createFile(filePath);
+        logger.info("File created with name: " + fileName);
         return filePath;
     }
 }

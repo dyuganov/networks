@@ -1,8 +1,11 @@
 package ru.nsu.dyuganov.file_sender_client.Protocol;
 
+import java.nio.file.Path;
+
 public interface SendProtocol {
-    void sendFileNameSize(int dataSize);
+    void sendFileNameSize(int size);
     void sendFileName(String fileName);
-    void sendFileSize(int fileSize);
-    void sendFile(String fileName);
+    void sendFileSize(long fileSize);
+    void sendFile(Path filepath);
+    void closeConnections();
 }

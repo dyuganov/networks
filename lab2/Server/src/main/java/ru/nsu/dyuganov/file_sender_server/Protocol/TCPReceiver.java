@@ -19,7 +19,6 @@ public class TCPReceiver implements ReceiveProtocol {
     private final static org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(TCPReceiver.class);
     private final Socket socket;
     private final DataInputStream inputStream;
-    private final DataOutputStream outputStream;
 
     private volatile long totalSessionTime = 0;
     private volatile long totalBytesRead = 0;
@@ -33,10 +32,8 @@ public class TCPReceiver implements ReceiveProtocol {
     public TCPReceiver(@NonNull Socket socket) {
         logger.debug("Receiver creation started");
         this.socket = socket;
-        inputStream = new DataInputStream(socket.getInputStream()); // TODO : if falls in SneakyThrows, resources are free?
+        inputStream = new DataInputStream(socket.getInputStream());
         logger.info("Got DataInputStream from client socket");
-        outputStream = new DataOutputStream(socket.getOutputStream());
-        logger.info("Got DataOutputStream from client socket");
         logger.debug("Receiver is ready");
     }
 
@@ -57,18 +54,13 @@ public class TCPReceiver implements ReceiveProtocol {
     }
 
     /**
-     * @param nameSize in bytes
      * @return name without '/'
      */
     @SneakyThrows
     @Override
-    public String getFileName(final int nameSize) {
-        String fileName = inputStream.readUTF();
-        if (nameSize != fileName.length()) {
-            logger.error(socket.toString() + " Got wrong file name. Expected len = " + nameSize + ", got len = " + fileName.length());
-            return null;
-        }
-        return fileName.substring(fileName.lastIndexOf('/') + 1);
+    public String getFileName() {
+        logger.debug(socket.toString() + " :getting file name");
+        return inputStream.readUTF();
     }
 
     /**
@@ -77,7 +69,7 @@ public class TCPReceiver implements ReceiveProtocol {
     @SneakyThrows
     @Override
     public long getFileSize() {
-        logger.debug(socket.toString() + " Getting file size");
+        logger.debug(socket.toString() + " :getting file size");
         return inputStream.readInt();
     }
 
@@ -92,6 +84,7 @@ public class TCPReceiver implements ReceiveProtocol {
 
         var fileWriter = Files.newOutputStream(filePath);
         if((long)Integer.MAX_VALUE < fileSize){
+            logger.error("Can't get file. It is too big");
             throw new RuntimeException("Can't get file. It is too big");
         }
         byte[] buf = new byte[FILE_DATA_BUF_SIZE];
@@ -115,7 +108,6 @@ public class TCPReceiver implements ReceiveProtocol {
     @Override
     public void closeConnections(){
         inputStream.close();
-        outputStream.close();
     }
 
     private void countSpeed() {

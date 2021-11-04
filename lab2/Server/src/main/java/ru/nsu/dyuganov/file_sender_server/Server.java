@@ -1,12 +1,9 @@
 package ru.nsu.dyuganov.file_sender_server;
 
-import lombok.NonNull;
 import lombok.SneakyThrows;
-import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.configuration2.builder.fluent.Configurations;
 import ru.nsu.dyuganov.file_sender_server.Protocol.TCPReceiver;
 
-import java.io.File;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
@@ -16,32 +13,27 @@ public class Server {
     private final static org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Server.class);
 
     private final ExecutorService threadPool;
-    private final String UPLOADS_DIRECTORY;
     private final ServerSocket serverSocket;
 
     @SneakyThrows
     Server(int port) {
-        @NonNull final Configuration config = new Configurations().properties(new File(Main.PROPERTIES_FILE_NAME));
-        logger.debug("Properties file \"" + Main.PROPERTIES_FILE_NAME + "\" loaded");
-
-        final int MIN_PORT = config.getInt("MIN_PORT", 1024);
-        final int MAX_PORT = config.getInt("MAX_PORT", 49151);
-        if (MIN_PORT > port || MAX_PORT < port) {
-            throw new IllegalArgumentException("Port is not correct");
+        if (Constants.MIN_PORT > port || Constants.MAX_PORT < port) {
+            logger.error("Wrong port");
+            throw new IllegalArgumentException("Wrong port");
         }
         serverSocket = new ServerSocket(port);
+        logger.info("Creates server socket. " + "Server ip is: " + InetAddress.getLocalHost().getHostAddress());
+        System.out.println("Server ip is: " + InetAddress.getLocalHost().getHostAddress());
 
-        final int THREAD_POOL_SIZE = config.getInt("THREAD_POOL_SIZE", 1);
-        threadPool = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
-
-        UPLOADS_DIRECTORY = config.getString("UPLOADS_DIRECTORY", "uploads/");
+        threadPool = Executors.newFixedThreadPool(Constants.THREAD_POOL_SIZE);
+        logger.debug("newFixedThreadPool with size " + Constants.THREAD_POOL_SIZE + " created");
     }
 
     @SneakyThrows
     public void run() {
         while (!serverSocket.isClosed()) {
             Socket newConnection = serverSocket.accept();
-            threadPool.submit(new ConnectionHandler(UPLOADS_DIRECTORY, new TCPReceiver(newConnection)));
+            threadPool.submit(new ConnectionHandler(Constants.UPLOADS_DIRECTORY, new TCPReceiver(newConnection)));
         }
         threadPool.shutdown();
     }
