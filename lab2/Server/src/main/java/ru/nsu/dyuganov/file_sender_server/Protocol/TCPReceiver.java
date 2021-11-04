@@ -2,6 +2,7 @@ package ru.nsu.dyuganov.file_sender_server.Protocol;
 
 import lombok.NonNull;
 import lombok.SneakyThrows;
+import lombok.Synchronized;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -20,11 +21,13 @@ public class TCPReceiver implements ReceiveProtocol {
     private final DataInputStream inputStream;
     private final DataOutputStream outputStream;
 
-
-
+    private volatile long totalSessionTime = 0;
+    private volatile long totalBytesRead = 0;
+    private volatile long bytesReadForInterval = 0;
 
     private final static int FILE_DATA_BUF_SIZE = 2048;
     private final static int TIME_INTERVAL_SEC = 3;
+    private final static int TIMER_INIT_DELAY = 3;
 
     @SneakyThrows
     public TCPReceiver(@NonNull Socket socket) {
@@ -85,13 +88,7 @@ public class TCPReceiver implements ReceiveProtocol {
     @Override
     public void getFile(final long fileSize, @NonNull final Path filePath) {
         final ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(1);
-        scheduledThreadPool.scheduleAtFixedRate(this::countSpeed, 2, TIME_INTERVAL_SEC, TimeUnit.SECONDS);
-        long totalSpeed = 0;
-        long currentSpeed = 0;
-        long totalSessionTime = 0;
-
-        long totalBytesRead = 0;
-        long bytesReadForInterval = 0;
+        scheduledThreadPool.scheduleAtFixedRate(this::countSpeed, TIMER_INIT_DELAY, TIME_INTERVAL_SEC, TimeUnit.SECONDS);
 
         var fileWriter = Files.newOutputStream(filePath);
         if((long)Integer.MAX_VALUE < fileSize){
@@ -105,13 +102,13 @@ public class TCPReceiver implements ReceiveProtocol {
                 break;
             }
             fileWriter.write(buf, 0, bytesFromStream);
+
             totalBytes += bytesFromStream;
             totalBytesRead += bytesFromStream;
             bytesReadForInterval += bytesFromStream;
         }
-
-
         scheduledThreadPool.shutdown();
+        fileWriter.close();
     }
 
     @SneakyThrows
@@ -121,7 +118,14 @@ public class TCPReceiver implements ReceiveProtocol {
         outputStream.close();
     }
 
-    private void countSpeed(){
-
+    private void countSpeed() {
+        totalSessionTime += TIME_INTERVAL_SEC;
+        long currentSpeed = (bytesReadForInterval / 1024) / TIME_INTERVAL_SEC;
+        bytesReadForInterval = 0;
+        long totalSpeed = (totalBytesRead / 1024) / totalSessionTime;
+        System.out.println("Total speed: " + totalSpeed + " Kb/second");
+        System.out.println("Current transfer speed: " + currentSpeed + " Kb/second");
+        logger.info(this + ": Current transfer speed: " + currentSpeed + " Kb/second");
+        logger.info(this + ": Total speed: " + totalSpeed + " Kb/second");
     }
 }
