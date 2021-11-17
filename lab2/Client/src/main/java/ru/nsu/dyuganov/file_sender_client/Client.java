@@ -22,10 +22,12 @@ public class Client implements Runnable{
      * @param serverAddress server ip or name
      * */
     Client(@NonNull final InetAddress serverAddress, final int port, @NonNull final Path filePath){
+        logger.debug("Client constructor started");
         this.filePath = filePath;
         this.serverAddress = serverAddress;
         this.serverPort = port;
         this.fileName = filePath.getFileName().toString();
+        logger.debug("Client constructor finished");
     }
 
     /**
@@ -33,12 +35,18 @@ public class Client implements Runnable{
      * */
     @SneakyThrows
     public void run() {
+        logger.debug("Client runs");
         SendProtocol sender = new Sender(serverAddress, serverPort);
-
+        logger.debug("Sender created");
         sender.sendFileNameSize(fileName.length());
+        logger.info("File name size sent");
         sender.sendFileName(fileName);
+        logger.info("File name sent");
         sender.sendFileSize(Files.size(filePath));
+        logger.info("File size sent");
         sender.sendFile(filePath);
+        logger.info("File size sent");
         sender.closeConnections();
+        logger.info("Connection closed");
     }
 }
