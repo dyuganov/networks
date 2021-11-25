@@ -1,7 +1,7 @@
 package ru.nsu.dyuganov.file_sender_server;
 
 import lombok.SneakyThrows;
-import ru.nsu.dyuganov.file_sender_server.Protocol.TCPReceiver;
+import ru.nsu.dyuganov.file_sender_server.protocol.TCPReceiver;
 
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -22,7 +22,7 @@ public class Server {
             throw new IllegalArgumentException("Wrong port");
         }
         serverSocket = new ServerSocket(port);
-        logger.info("Creates server socket. " + "Server ip is: " + InetAddress.getLocalHost().getHostAddress());
+        logger.info("Creating server socket. " + "Server ip is: " + InetAddress.getLocalHost().getHostAddress());
         System.out.println("Server ip is: " + InetAddress.getLocalHost().getHostAddress());
 
         threadPool = Executors.newFixedThreadPool(Constants.THREAD_POOL_SIZE);
@@ -31,10 +31,13 @@ public class Server {
 
     @SneakyThrows
     public void run() {
+        logger.debug("Server started");
         while (!serverSocket.isClosed()) {
             Socket newConnection = serverSocket.accept();
+            logger.info("Got new connection: " + newConnection);
             threadPool.submit(new ConnectionHandler(Constants.UPLOADS_DIRECTORY, new TCPReceiver(newConnection)));
         }
         threadPool.shutdown();
+        logger.info("Server finished work");
     }
 }

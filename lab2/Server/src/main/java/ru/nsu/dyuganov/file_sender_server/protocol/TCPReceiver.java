@@ -1,11 +1,9 @@
-package ru.nsu.dyuganov.file_sender_server.Protocol;
+package ru.nsu.dyuganov.file_sender_server.protocol;
 
 import lombok.NonNull;
 import lombok.SneakyThrows;
-import lombok.Synchronized;
 
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -43,13 +41,18 @@ public class TCPReceiver implements ReceiveProtocol {
     @SneakyThrows
     @Override
     public int getFileNameSize() {
+        logger.debug("Getting file name size started");
         Instant start = Instant.now();
         final int result = inputStream.readInt();
+        logger.debug("Got int: " + result);
         Instant end = Instant.now();
         Duration timeElapsed = Duration.between(start, end);
         logger.debug(socket.toString() + " Getting file name size done at " + timeElapsed.toMillis() + " millis");
+        logger.debug("Getting file name size time taken: "+ timeElapsed.toMillis() +" milliseconds" +
+                " at speed " + Integer.SIZE/timeElapsed.getSeconds() + "bytes/second");
         System.out.println("Getting file name size time taken: "+ timeElapsed.toMillis() +" milliseconds" +
                 " at speed " + Integer.SIZE/timeElapsed.getSeconds() + "bytes/second");
+        System.out.flush();
         return result;
     }
 
@@ -79,9 +82,10 @@ public class TCPReceiver implements ReceiveProtocol {
     @SneakyThrows
     @Override
     public void getFile(final long fileSize, @NonNull final Path filePath) {
+        logger.debug("Getting file started");
         final ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(1);
         scheduledThreadPool.scheduleAtFixedRate(this::countSpeed, TIMER_INIT_DELAY, TIME_INTERVAL_SEC, TimeUnit.SECONDS);
-
+        logger.debug("scheduledThreadPool started with TIMER_INIT_DELAY: " + TIMER_INIT_DELAY + ", TIME_INTERVAL_SEC: " + TIME_INTERVAL_SEC + " seconds");
         var fileWriter = Files.newOutputStream(filePath);
         if((long)Integer.MAX_VALUE < fileSize){
             logger.error("Can't get file. It is too big");
@@ -102,6 +106,7 @@ public class TCPReceiver implements ReceiveProtocol {
         }
         scheduledThreadPool.shutdown();
         fileWriter.close();
+        logger.debug("Getting file finished");
     }
 
     @SneakyThrows

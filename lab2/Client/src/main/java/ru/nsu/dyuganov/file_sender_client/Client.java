@@ -2,8 +2,8 @@ package ru.nsu.dyuganov.file_sender_client;
 
 import lombok.NonNull;
 import lombok.SneakyThrows;
-import ru.nsu.dyuganov.file_sender_client.Protocol.SendProtocol;
-import ru.nsu.dyuganov.file_sender_client.Protocol.Sender;
+import ru.nsu.dyuganov.file_sender_client.protocol.SendProtocol;
+import ru.nsu.dyuganov.file_sender_client.protocol.Sender;
 
 import java.net.InetAddress;
 import java.nio.file.Files;

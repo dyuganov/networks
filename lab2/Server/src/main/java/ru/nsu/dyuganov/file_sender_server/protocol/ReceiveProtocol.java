@@ -1,4 +1,4 @@
-package ru.nsu.dyuganov.file_sender_server.Protocol;
+package ru.nsu.dyuganov.file_sender_server.protocol;
 
 import java.nio.file.Path;
 
