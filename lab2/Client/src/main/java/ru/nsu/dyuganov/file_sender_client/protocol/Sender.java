@@ -37,7 +37,7 @@ public class Sender implements SendProtocol {
 
     @Override
     public void sendFileName(@NonNull String fileName) throws IOException {
-        logger.info(socket + " :sending file name start");
+        logger.info(socket + " :sending file name (" + fileName + ") start");
         dataOutputStream.writeUTF(fileName);
         dataOutputStream.flush();
         logger.info(socket + " :sending file name success");
@@ -45,7 +45,7 @@ public class Sender implements SendProtocol {
 
     @Override
     public void sendFileSize(long fileSize) throws IOException {
-        logger.info(socket + " : sending file size start");
+        logger.info(socket + " : sending file size (" + fileSize + ") start");
         dataOutputStream.writeLong(fileSize);
         dataOutputStream.flush();
         logger.info(socket + " : sending file size success");
@@ -59,10 +59,14 @@ public class Sender implements SendProtocol {
         var buffer = new byte[FILE_DATA_BUF_SIZE];
         int bytesFromFile = 0;
 
-        while (0 <= bytesFromFile) {
-            bytesFromFile = fileReader.read(buffer, 0, FILE_DATA_BUF_SIZE);
+        while (0 < (bytesFromFile = fileReader.read(buffer, 0, FILE_DATA_BUF_SIZE))) {
             dataOutputStream.write(buffer, 0, bytesFromFile);
             dataOutputStream.flush();
+            try {
+                Thread.sleep(10); // TODO: it is for test
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
         logger.debug(socket + " : sending file success");
     }

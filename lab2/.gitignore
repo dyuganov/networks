@@ -11,4 +11,5 @@
 **/Client/logs
 **/Server/logs
 **/.gradle
+**/uploads
 

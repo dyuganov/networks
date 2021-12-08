@@ -40,6 +40,7 @@ public class Client implements Runnable{
             sender = new Sender(serverAddress, serverPort);
         } catch (IOException e) {
             logger.error("Error while creating sender: " + e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("Error while creating sender");
         }
         logger.debug("Sender created");
@@ -47,6 +48,7 @@ public class Client implements Runnable{
             sender.sendFileNameSize(fileName.length());
         } catch (IOException e) {
             logger.error("Error while sending file name size: " + e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("Error while sending name name size");
         }
         logger.info("File name size sent");
@@ -54,13 +56,28 @@ public class Client implements Runnable{
             sender.sendFileName(fileName);
         } catch (IOException e) {
             logger.error("Error while sending file name: " + e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("Error while sending file name");
         }
         logger.info("File name sent");
+        if(!Files.exists(filePath)){
+            logger.error("File at path " + filePath + " does not exist");
+            throw new RuntimeException("File at path " + filePath + " does not exist");
+        }
+        logger.debug("File exists at path: " + filePath);
+        long fileSize = 0;
         try {
-            sender.sendFileSize(Files.size(filePath));
+            fileSize = Files.size(filePath);
+        } catch (IOException e) {
+            logger.error("Error while getting file size: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Error while getting file size");
+        }
+        try {
+            sender.sendFileSize(fileSize);
         } catch (IOException e) {
             logger.error("Error while sending file size: " + e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("Error while sending file size");
         }
         logger.info("File size sent");
@@ -68,6 +85,7 @@ public class Client implements Runnable{
             sender.sendFile(filePath);
         } catch (IOException e) {
             logger.error("Error while sending file: " + e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("Error while sending file");
         }
         logger.info("File size sent");
@@ -75,6 +93,7 @@ public class Client implements Runnable{
             sender.closeConnections();
         } catch (IOException e) {
             logger.error("Error while closing connection: " + e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("Error while closing connection");
         }
         logger.info("Connection closed");

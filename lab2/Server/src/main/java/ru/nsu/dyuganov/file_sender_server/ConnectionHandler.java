@@ -35,6 +35,7 @@ public class ConnectionHandler implements Runnable {
             fileNameSize = receiveProtocol.getFileNameSize();
         } catch (IOException e) {
             logger.error("Error while getting file name size: " + e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("Error while getting file name size");
         }
         logger.debug("Got file name size: " + fileNameSize);
@@ -44,6 +45,7 @@ public class ConnectionHandler implements Runnable {
             fileName = receiveProtocol.getFileName();
         } catch (IOException e) {
             logger.error("Error while getting file name: " + e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("Error while getting file name");
         }
         logger.info("Got file name: " + fileName);
@@ -53,17 +55,19 @@ public class ConnectionHandler implements Runnable {
                 receiveProtocol.closeConnections();
             } catch (IOException e) {
                 logger.error("Error while closing connection: " + e.getMessage());
+                e.printStackTrace();
                 throw new RuntimeException("Error while closing connection");
             }
             throw new RuntimeException("Wrong filename");
         }
         logger.debug("File name length is correct");
         logger.debug("Getting file size");
-        long fileSize = 0;
+        long fileSize = -1;
         try {
             fileSize = receiveProtocol.getFileSize();
         } catch (IOException e) {
             logger.error("Error while getting file size: " + e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("Error while getting file size");
         }
         logger.info("Got file size: " + fileSize);
@@ -75,6 +79,7 @@ public class ConnectionHandler implements Runnable {
             receiveProtocol.getFile(fileSize, filePath);
         } catch (IOException e) {
             logger.error("Error while getting file: " + e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("Error while getting file");
         }
         logger.info("Got file");
@@ -82,6 +87,7 @@ public class ConnectionHandler implements Runnable {
             receiveProtocol.closeConnections();
         } catch (IOException e) {
             logger.error("Error while closing connection: " + e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("Error while closing connection");
         }
         logger.info("Connection closed");
@@ -92,6 +98,7 @@ public class ConnectionHandler implements Runnable {
             }
         } catch (IOException e) {
             logger.error("Error while getting downloaded file size: " + e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("Error while getting downloaded file size");
         }
         logger.debug("File size is correct");
@@ -100,12 +107,21 @@ public class ConnectionHandler implements Runnable {
 
     private Path createFile(@NonNull String fileName) {
         final var directoryPath = Paths.get(uploadsDirectoryName);
-        final String separator = System.getProperty("file.separator");
-        final Path filePath = Paths.get(directoryPath + separator + fileName);
         try {
-            Files.createFile(filePath);
+            Files.createDirectories(directoryPath);
+        } catch (IOException e) {
+            logger.error("Error while creating directory " + directoryPath);
+            e.printStackTrace();
+            throw new RuntimeException("Error while creating directory " + directoryPath);
+        }
+        final String separator = System.getProperty("file.separator");
+        Path filePath = Paths.get(directoryPath + separator + fileName);
+        logger.debug("Trying to create file: " + filePath);
+        try {
+            filePath.toFile().createNewFile();
         } catch (IOException e) {
             logger.error("Error while creating file: " + e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("Error while creating file");
         }
         logger.info("File created with name: " + fileName);

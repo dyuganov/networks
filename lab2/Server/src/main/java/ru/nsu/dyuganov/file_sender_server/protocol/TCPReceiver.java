@@ -40,18 +40,7 @@ public class TCPReceiver implements ReceiveProtocol {
     @Override
     public int getFileNameSize() throws IOException {
         logger.debug("Getting file name size started");
-        Instant start = Instant.now();
-        final int result = dataInputStream.readInt();
-        logger.debug("Got int: " + result);
-        Instant end = Instant.now();
-        Duration timeElapsed = Duration.between(start, end);
-        logger.debug(socket.toString() + " Getting file name size done at " + timeElapsed.toMillis() + " millis");
-        logger.debug("Getting file name size time taken: "+ timeElapsed.toMillis() +" milliseconds" +
-                " at speed " + Integer.SIZE/timeElapsed.getSeconds() + "bytes/second");
-        System.out.println("Getting file name size time taken: "+ timeElapsed.toMillis() +" milliseconds" +
-                " at speed " + Integer.SIZE/timeElapsed.getSeconds() + "bytes/second");
-        System.out.flush();
-        return result;
+        return dataInputStream.readInt();
     }
 
     /**
@@ -68,8 +57,8 @@ public class TCPReceiver implements ReceiveProtocol {
      */
     @Override
     public long getFileSize() throws IOException {
-        logger.debug(socket.toString() + " :getting file size");
-        return dataInputStream.readInt();
+        logger.debug(socket.toString() + " : getting file size");
+        return dataInputStream.readLong();
     }
 
     /**
@@ -116,7 +105,5 @@ public class TCPReceiver implements ReceiveProtocol {
         long totalSpeed = (totalBytesRead / 1024) / totalSessionTime;
         System.out.println("Total speed: " + totalSpeed + " Kb/second");
         System.out.println("Current transfer speed: " + currentSpeed + " Kb/second");
-        logger.info(this + ": Current transfer speed: " + currentSpeed + " Kb/second");
-        logger.info(this + ": Total speed: " + totalSpeed + " Kb/second");
     }
 }

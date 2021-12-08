@@ -24,7 +24,7 @@ public class Server {
         logger.info("Creating server socket. " + "Server ip is: " + InetAddress.getLocalHost().getHostAddress());
         System.out.println("Server ip is: " + InetAddress.getLocalHost().getHostAddress());
 
-        threadPool = Executors.newFixedThreadPool(Constants.THREAD_POOL_SIZE);
+        threadPool = Executors.newCachedThreadPool();
         logger.debug("newFixedThreadPool with size " + Constants.THREAD_POOL_SIZE + " created");
     }
 
@@ -33,9 +33,10 @@ public class Server {
         while (!serverSocket.isClosed()) {
             Socket newConnection = null;
             try {
-                newConnection = serverSocket.accept(); // thread pool waits here. Forever....
+                newConnection = serverSocket.accept();
             } catch (IOException e) {
                 logger.error("Error while getting new connection: " + e.getMessage());
+                e.printStackTrace();
                 throw new RuntimeException("Error while getting new connection");
             }
             logger.info("Got new connection: " + newConnection);
@@ -43,6 +44,7 @@ public class Server {
                 threadPool.submit(new ConnectionHandler(Constants.UPLOADS_DIRECTORY, new TCPReceiver(newConnection)));
             } catch (IOException e) {
                 logger.error("Error while creating TCPReceiver: " + e.getMessage());
+                e.printStackTrace();
                 throw new RuntimeException("Error while creating TCPReceiver");
             }
         }
