@@ -1,8 +1,8 @@
 package ru.nsu.dyuganov.file_sender_server;
 
-import lombok.SneakyThrows;
 import ru.nsu.dyuganov.file_sender_server.protocol.TCPReceiver;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -15,8 +15,7 @@ public class Server {
     private final ExecutorService threadPool;
     private final ServerSocket serverSocket;
 
-    @SneakyThrows
-    Server(int port) {
+    Server(int port) throws IOException {
         if (Constants.MIN_PORT > port || Constants.MAX_PORT < port) {
             logger.error("Wrong port");
             throw new IllegalArgumentException("Wrong port");
@@ -29,13 +28,23 @@ public class Server {
         logger.debug("newFixedThreadPool with size " + Constants.THREAD_POOL_SIZE + " created");
     }
 
-    @SneakyThrows
     public void run() {
         logger.debug("Server started");
         while (!serverSocket.isClosed()) {
-            Socket newConnection = serverSocket.accept();
+            Socket newConnection = null;
+            try {
+                newConnection = serverSocket.accept();
+            } catch (IOException e) {
+                logger.error("Error while getting new connection: " + e.getMessage());
+                throw new RuntimeException("Error while getting new connection");
+            }
             logger.info("Got new connection: " + newConnection);
-            threadPool.submit(new ConnectionHandler(Constants.UPLOADS_DIRECTORY, new TCPReceiver(newConnection)));
+            try {
+                threadPool.submit(new ConnectionHandler(Constants.UPLOADS_DIRECTORY, new TCPReceiver(newConnection)));
+            } catch (IOException e) {
+                logger.error("Error while creating TCPReceiver: " + e.getMessage());
+                throw new RuntimeException("Error while creating TCPReceiver");
+            }
         }
         threadPool.shutdown();
         logger.info("Server finished work");

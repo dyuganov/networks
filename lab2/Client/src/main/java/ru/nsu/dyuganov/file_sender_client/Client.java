@@ -1,10 +1,10 @@
 package ru.nsu.dyuganov.file_sender_client;
 
 import lombok.NonNull;
-import lombok.SneakyThrows;
 import ru.nsu.dyuganov.file_sender_client.protocol.SendProtocol;
 import ru.nsu.dyuganov.file_sender_client.protocol.Sender;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,20 +33,50 @@ public class Client implements Runnable{
     /**
      * Order of sending info: file name size, file name, file size, file
      * */
-    @SneakyThrows
     public void run() {
         logger.debug("Client runs");
-        SendProtocol sender = new Sender(serverAddress, serverPort);
+        SendProtocol sender = null;
+        try {
+            sender = new Sender(serverAddress, serverPort);
+        } catch (IOException e) {
+            logger.error("Error while creating sender: " + e.getMessage());
+            throw new RuntimeException("Error while creating sender");
+        }
         logger.debug("Sender created");
-        sender.sendFileNameSize(fileName.length());
+        try {
+            sender.sendFileNameSize(fileName.length());
+        } catch (IOException e) {
+            logger.error("Error while sending file name size: " + e.getMessage());
+            throw new RuntimeException("Error while sending name name size");
+        }
         logger.info("File name size sent");
-        sender.sendFileName(fileName);
+        try {
+            sender.sendFileName(fileName);
+        } catch (IOException e) {
+            logger.error("Error while sending file name: " + e.getMessage());
+            throw new RuntimeException("Error while sending file name");
+        }
         logger.info("File name sent");
-        sender.sendFileSize(Files.size(filePath));
+        try {
+            sender.sendFileSize(Files.size(filePath));
+        } catch (IOException e) {
+            logger.error("Error while sending file size: " + e.getMessage());
+            throw new RuntimeException("Error while sending file size");
+        }
         logger.info("File size sent");
-        sender.sendFile(filePath);
+        try {
+            sender.sendFile(filePath);
+        } catch (IOException e) {
+            logger.error("Error while sending file: " + e.getMessage());
+            throw new RuntimeException("Error while sending file");
+        }
         logger.info("File size sent");
-        sender.closeConnections();
+        try {
+            sender.closeConnections();
+        } catch (IOException e) {
+            logger.error("Error while closing connection: " + e.getMessage());
+            throw new RuntimeException("Error while closing connection");
+        }
         logger.info("Connection closed");
     }
 }

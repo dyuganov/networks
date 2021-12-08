@@ -1,9 +1,9 @@
 package ru.nsu.dyuganov.file_sender_server.protocol;
 
 import lombok.NonNull;
-import lombok.SneakyThrows;
 
 import java.io.DataInputStream;
+import java.io.IOException;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 public class TCPReceiver implements ReceiveProtocol {
     private final static org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(TCPReceiver.class);
     private final Socket socket;
-    private final DataInputStream inputStream;
+    private final DataInputStream dataInputStream;
 
     private volatile long totalSessionTime = 0;
     private volatile long totalBytesRead = 0;
@@ -26,11 +26,10 @@ public class TCPReceiver implements ReceiveProtocol {
     private final static int TIME_INTERVAL_SEC = 3;
     private final static int TIMER_INIT_DELAY = 3;
 
-    @SneakyThrows
-    public TCPReceiver(@NonNull Socket socket) {
+    public TCPReceiver(@NonNull Socket socket) throws IOException {
         logger.debug("Receiver creation started");
         this.socket = socket;
-        inputStream = new DataInputStream(socket.getInputStream());
+        dataInputStream = new DataInputStream(socket.getInputStream());
         logger.info("Got DataInputStream from client socket");
         logger.debug("Receiver is ready");
     }
@@ -38,12 +37,11 @@ public class TCPReceiver implements ReceiveProtocol {
     /**
      * @return size in bytes
      */
-    @SneakyThrows
     @Override
-    public int getFileNameSize() {
+    public int getFileNameSize() throws IOException {
         logger.debug("Getting file name size started");
         Instant start = Instant.now();
-        final int result = inputStream.readInt();
+        final int result = dataInputStream.readInt();
         logger.debug("Got int: " + result);
         Instant end = Instant.now();
         Duration timeElapsed = Duration.between(start, end);
@@ -59,29 +57,26 @@ public class TCPReceiver implements ReceiveProtocol {
     /**
      * @return name without '/'
      */
-    @SneakyThrows
     @Override
-    public String getFileName() {
+    public String getFileName() throws IOException {
         logger.debug(socket.toString() + " :getting file name");
-        return inputStream.readUTF();
+        return dataInputStream.readUTF();
     }
 
     /**
      * @return size in bytes
      */
-    @SneakyThrows
     @Override
-    public long getFileSize() {
+    public long getFileSize() throws IOException {
         logger.debug(socket.toString() + " :getting file size");
-        return inputStream.readInt();
+        return dataInputStream.readInt();
     }
 
     /**
      * @param fileSize in bytes
      */
-    @SneakyThrows
     @Override
-    public void getFile(final long fileSize, @NonNull final Path filePath) {
+    public void getFile(final long fileSize, @NonNull final Path filePath) throws IOException {
         logger.debug("Getting file started");
         final ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(1);
         scheduledThreadPool.scheduleAtFixedRate(this::countSpeed, TIMER_INIT_DELAY, TIME_INTERVAL_SEC, TimeUnit.SECONDS);
@@ -94,7 +89,7 @@ public class TCPReceiver implements ReceiveProtocol {
         byte[] buf = new byte[FILE_DATA_BUF_SIZE];
         long totalBytes = 0;
         while(fileSize > totalBytes){
-            int bytesFromStream = inputStream.read(buf, 0, FILE_DATA_BUF_SIZE);
+            int bytesFromStream = dataInputStream.read(buf, 0, FILE_DATA_BUF_SIZE);
             if (bytesFromStream < 0) {
                 break;
             }
@@ -109,10 +104,9 @@ public class TCPReceiver implements ReceiveProtocol {
         logger.debug("Getting file finished");
     }
 
-    @SneakyThrows
     @Override
-    public void closeConnections(){
-        inputStream.close();
+    public void closeConnections() throws IOException {
+        dataInputStream.close();
     }
 
     private void countSpeed() {

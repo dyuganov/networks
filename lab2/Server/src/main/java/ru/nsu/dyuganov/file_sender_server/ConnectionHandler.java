@@ -1,9 +1,9 @@
 package ru.nsu.dyuganov.file_sender_server;
 
 import lombok.NonNull;
-import lombok.SneakyThrows;
 import ru.nsu.dyuganov.file_sender_server.protocol.ReceiveProtocol;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -26,47 +26,87 @@ public class ConnectionHandler implements Runnable {
     /**
      * Order of getting info: file name size, file name, file size, file
      * */
-    @SneakyThrows
     @Override
     public void run() {
         logger.debug("connection handler started: " + this);
         logger.debug("Getting file name size");
-        final int fileNameSize = receiveProtocol.getFileNameSize();
+        int fileNameSize = 0;
+        try {
+            fileNameSize = receiveProtocol.getFileNameSize();
+        } catch (IOException e) {
+            logger.error("Error while getting file name size: ");
+        }
         logger.debug("Got file name size: " + fileNameSize);
-        logger.debug("Getting file name");
-        @NonNull String fileName = receiveProtocol.getFileName();
-        logger.debug("Got file name: " + fileName);
+        logger.info("Getting file name");
+        @NonNull String fileName = null;
+        try {
+            fileName = receiveProtocol.getFileName();
+        } catch (IOException e) {
+            logger.error("Error while getting file name: " + e.getMessage());
+            throw new RuntimeException("Error while getting ");
+        }
+        logger.info("Got file name: " + fileName);
         if (fileNameSize != fileName.length()) {
             logger.error("Got wrong file name. Expected len = " + fileNameSize + ", got len = " + fileName.length() + " name: " + fileName);
-            receiveProtocol.closeConnections();
+            try {
+                receiveProtocol.closeConnections();
+            } catch (IOException e) {
+                logger.error("Error while closing connection: " + e.getMessage());
+                throw new RuntimeException("");
+            }
             throw new RuntimeException("Wrong filename");
         }
         logger.debug("File name length is correct");
         logger.debug("Getting file size");
-        final long fileSize = receiveProtocol.getFileSize();
-        logger.debug("Got file size: " + fileSize);
+        long fileSize = 0;
+        try {
+            fileSize = receiveProtocol.getFileSize();
+        } catch (IOException e) {
+            logger.error("Error while getting file size: " + e.getMessage());
+            throw new RuntimeException("Error while getting file size");
+        }
+        logger.info("Got file size: " + fileSize);
         logger.debug("Creating file");
         final var filePath = createFile(fileName);
-        logger.debug("File created. Path: " + filePath);
+        logger.info("File created. Path: " + filePath);
         logger.debug("Getting file");
-        receiveProtocol.getFile(fileSize, filePath);
-        logger.debug("Got file");
-        receiveProtocol.closeConnections();
-        logger.debug("Connection closed");
-        if(fileSize != Files.size(filePath)){
-            logger.error("Real != expected file size");
-            throw new RuntimeException("Real != expected file size");
+        try {
+            receiveProtocol.getFile(fileSize, filePath);
+        } catch (IOException e) {
+            logger.error("Error while getting file: " + e.getMessage());
+            throw new RuntimeException("Error while getting file");
+        }
+        logger.info("Got file");
+        try {
+            receiveProtocol.closeConnections();
+        } catch (IOException e) {
+            logger.error("Error while closing connection: " + e.getMessage());
+            throw new RuntimeException("Error while closing connection");
+        }
+        logger.info("Connection closed");
+        try {
+            if(fileSize != Files.size(filePath)){
+                logger.error("Real != expected file size");
+                throw new RuntimeException("Real != expected file size");
+            }
+        } catch (IOException e) {
+            logger.error("Error while getting downloaded file size: " + e.getMessage());
+            throw new RuntimeException("Error while getting downloaded file size");
         }
         logger.debug("File size is correct");
-        logger.debug("File receive finished");
+        logger.info("File receive finished");
     }
 
-    @SneakyThrows
-    private Path createFile(@NonNull String fileName){
+    private Path createFile(@NonNull String fileName) {
         final var directoryPath = Paths.get(uploadsDirectoryName);
         final String separator = System.getProperty("file.separator");
         final Path filePath = Paths.get(directoryPath + separator + fileName);
-        Files.createFile(filePath);
+        try {
+            Files.createFile(filePath);
+        } catch (IOException e) {
+            logger.error("Error while creating file: " + e.getMessage());
+            throw new RuntimeException("Error while creating file");
+        }
         logger.info("File created with name: " + fileName);
         return filePath;
     }
