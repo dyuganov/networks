@@ -34,7 +34,8 @@ public class ConnectionHandler implements Runnable {
         try {
             fileNameSize = receiveProtocol.getFileNameSize();
         } catch (IOException e) {
-            logger.error("Error while getting file name size: ");
+            logger.error("Error while getting file name size: " + e.getMessage());
+            throw new RuntimeException("Error while getting file name size");
         }
         logger.debug("Got file name size: " + fileNameSize);
         logger.info("Getting file name");
@@ -43,7 +44,7 @@ public class ConnectionHandler implements Runnable {
             fileName = receiveProtocol.getFileName();
         } catch (IOException e) {
             logger.error("Error while getting file name: " + e.getMessage());
-            throw new RuntimeException("Error while getting ");
+            throw new RuntimeException("Error while getting file name");
         }
         logger.info("Got file name: " + fileName);
         if (fileNameSize != fileName.length()) {
@@ -52,7 +53,7 @@ public class ConnectionHandler implements Runnable {
                 receiveProtocol.closeConnections();
             } catch (IOException e) {
                 logger.error("Error while closing connection: " + e.getMessage());
-                throw new RuntimeException("");
+                throw new RuntimeException("Error while closing connection");
             }
             throw new RuntimeException("Wrong filename");
         }

@@ -33,7 +33,7 @@ public class Server {
         while (!serverSocket.isClosed()) {
             Socket newConnection = null;
             try {
-                newConnection = serverSocket.accept();
+                newConnection = serverSocket.accept(); // thread pool waits here. Forever....
             } catch (IOException e) {
                 logger.error("Error while getting new connection: " + e.getMessage());
                 throw new RuntimeException("Error while getting new connection");
