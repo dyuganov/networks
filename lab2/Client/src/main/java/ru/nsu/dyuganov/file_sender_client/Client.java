@@ -21,7 +21,7 @@ public class Client implements Runnable{
      * @param filePath filepath or filename. It will be converted to name only.
      * @param serverAddress server ip or name
      * */
-    Client(@NonNull final InetAddress serverAddress, final int port, @NonNull final Path filePath){
+    public Client(@NonNull final InetAddress serverAddress, final int port, @NonNull final Path filePath){
         logger.debug("Client constructor started");
         this.filePath = filePath;
         this.serverAddress = serverAddress;
